@@ -1,6 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { SITE_META } from "../consts";
+import ingredients from "../data/ingredients.json";
+import effects from "../data/effects.json";
 
 
 ---
@@ -11,7 +13,7 @@ import { SITE_META } from "../consts";
 			<h2 class="my-4 text-2xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl sm:leading-10 md:text-4xl md:leading-14">
 				{SITE_META.title} - Coming Soon!
 			</h2>
-			<p class="mt-4 text-lg leading-7 text-gray-500 dark:text-gray-400">
+			<p class="pt-4 text-lg leading-7 text-gray-500 dark:text-gray-400">
 				{SITE_META.desc}
 			</p>
 		</div>

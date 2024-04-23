@@ -2,7 +2,9 @@
 
 Find ingredients by searching for their effects.
 
-## Commands
+## To run it yourself:
+
+#### Commands
 
 All commands are run from the root of the project, from a terminal:
 

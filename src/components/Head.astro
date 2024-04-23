@@ -1,14 +1,11 @@
 ---
 import {ViewTransitions} from 'astro:transitions';
-import { SITE_META } from '../consts';
-
 interface Props {
     title: string;
     desc: string;
-    image?: string;
 }
 
-const {title, desc, image = '/placeholder.jpg'} = Astro.props;
+const {title, desc,} = Astro.props;
 ---
 
 <head>

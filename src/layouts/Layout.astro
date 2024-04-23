@@ -1,0 +1,17 @@
+---
+import Head from "../components/Head.astro"
+import SectionContainer from "../components/SectionContainer.astro"
+---
+
+<html lang="en" class="scroll-smooth">
+    <Head/>
+        <body class="bg-white text-black antialiased dark:bg-gray-950 dark:text-white">
+            <SectionContainer>
+                <div class="flex h-screen flex-col justify-between font-sans">
+                    <main transition:animate="fade" class="mb-auto">
+                        <slot/>
+                    </main>
+                </div>
+            </SectionContainer>
+        </body>
+</html>

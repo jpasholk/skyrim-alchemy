@@ -1,0 +1,22 @@
+---
+import {ViewTransitions} from 'astro:transitions';
+import { SITE_META } from '../consts';
+
+interface Props {
+    title: string;
+    desc: string;
+    image?: string;
+}
+
+const {title, desc, image = '/placeholder.jpg'} = Astro.props;
+---
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={desc}/>
+    <ViewTransitions>
+</head>

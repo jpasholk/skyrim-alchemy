@@ -1,38 +1,12 @@
-# astro-simple
+# Skyrim Alchemy Tool
 
-A blog starter template with [Astro](https://github.com/withastro/astro) and [Simple.css](https://github.com/kevquirk/simple.css). Based on the [Astro blog example](https://github.com/withastro/astro/tree/main/examples/blog).
+A tool to help you master alchemy in Skyrim. (And help me learn webdev!)
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/lkhrs/astro-simple/tree/main/)
+## Credits
 
-Features:
+- Build with [astro-simple](https://github.com/lkhrs/astro-simple), a [Simple.css](https://github.com/kevquirk/simple.css) theme for [Astro](https://github.com/withastro/astro).
 
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and OpenGraph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```
-├── public/
-├── src/
-│   ├── components/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
+- I found [this post on Reddit](https://www.reddit.com/r/skyrim/comments/rm1sg6/i_made_an_alchemyhelperapp/) when looking for a Skyrim Alchemy app. That led me to his [repo](https://github.com/Finbel/alchemy), which is where I found the json files. It then led me to create an iOS Shortcut called [Skyrim Alchemy Tool](https://routinehub.co/shortcut/19465/) which was a lot of fun to make.
 
 ## 🧞 Commands
 

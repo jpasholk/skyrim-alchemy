@@ -15,4 +15,10 @@ const { title, description } = Astro.props.frontmatter || Astro.props;
 	{description &&
 	<p>{description}</p>
 	}
+	<p>
+    	<label for="effectSelect">Select an effect:</label>
+	</p>
+    <select id="effectSelect">
+        <option value="">--Select an effect--</option>
+    </select>
 </header>

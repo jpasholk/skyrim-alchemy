@@ -3,40 +3,45 @@
 const effectsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/effects.json';
 const ingredientsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/ingredients.json';
 
-// Function to load JSON data from a URL
-export async function loadJSON(url) {
+console.log("effectIngredientFinder.js loaded");
+
+export async function initializeDropdown() {
+    console.log("initializeDropdown function started");
+
+    try {
+        const effectsData = await loadJSON(effectsURL);
+        const ingredientsData = await loadJSON(ingredientsURL);
+
+        const effectSelect = document.getElementById('effectSelect');
+        if (!effectSelect) {
+            console.error("Dropdown element with id 'effectSelect' not found.");
+            return;
+        }
+
+        effectsData.forEach(effect => {
+            const option = document.createElement('option');
+            option.value = effect.effect;
+            option.textContent = effect.effect;
+            effectSelect.appendChild(option);
+        });
+
+        effectSelect.addEventListener('change', function () {
+            displayIngredientsForEffect(this.value, ingredientsData);
+        });
+    } catch (error) {
+        console.error("Error initializing dropdown:", error);
+    }
+}
+
+async function loadJSON(url) {
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch data from ${url}`);
     return await response.json();
 }
 
-// Function to initialize the effect selection dropdown
-export async function initializeDropdown() {
-    const effectsData = await loadJSON(effectsURL);
-    const ingredientsData = await loadJSON(ingredientsURL);
-
-    // Map effects for easy lookup
-    const effectsDict = {};
-    effectsData.forEach(effect => effectsDict[effect.effect] = effect.value);
-
-    // Display available effects in the dropdown
-    const effectSelect = document.getElementById('effectSelect');
-    Object.keys(effectsDict).forEach(effect => {
-        const option = document.createElement('option');
-        option.value = effect;
-        option.textContent = effect;
-        effectSelect.appendChild(option);
-    });
-
-    // Add event listener for dropdown change
-    effectSelect.addEventListener('change', function() {
-        displayIngredientsForEffect(this.value, ingredientsData);
-    });
-}
-
-// Function to display ingredients with the selected effect
 export function displayIngredientsForEffect(effect, ingredientsData) {
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = ""; // Clear previous results
+    resultsDiv.innerHTML = "";
 
     if (effect) {
         const matchingIngredients = ingredientsData.filter(ingredient =>

@@ -1,0 +1,37 @@
+---
+import { initializeDropdown } from './effectIngredientFinder.js';
+---
+
+<section>
+    <h1>Effect Ingredient Finder</h1>
+    <label for="effectSelect">Select an effect:</label>
+    <select id="effectSelect">
+        <option value="">--Select an effect--</option>
+    </select>
+    <div id="results" class="results"></div>
+
+    <style>
+        .results {
+            margin-top: 1rem;
+        }
+
+        .ingredient {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .ingredient h3 {
+            margin: 0.5rem 0;
+        }
+    </style>
+
+    <script type="module" client:load>
+        import { initializeDropdown } from './effectIngredientFinder.js';
+        
+        // Initialize the dropdown and setup interactions
+        document.addEventListener('DOMContentLoaded', initializeDropdown);
+    </script>
+</section>

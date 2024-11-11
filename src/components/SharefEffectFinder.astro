@@ -1,0 +1,220 @@
+    <h1>Ingredient Effect Matcher</h1>
+
+    <!-- Container for displaying all ingredients grouped alphabetically with checkboxes -->
+    <div id="ingredientList" class="ingredient-list">
+        <p class="notice">Select ingredients from your inventory to find shared effects.</p>
+    </div>
+
+    <!-- Button to show shared effects with adjusted placement -->
+    <div class="button-container">
+        <button id="showSharedEffects" disabled>Show Shared Effects</button>
+    </div>
+
+    <!-- Container for displaying shared effects and matching ingredients -->
+    <div id="results" class="results">
+        <p class="notice">Shared effects and matching ingredients will show here.</p>
+    </div>
+
+<script type="module">
+    const effectsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/effects.json';
+    const ingredientsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/ingredients.json';
+
+    // Function to load JSON data from a URL
+    async function loadJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to fetch data from ${url}`);
+        return await response.json();
+    }
+
+    // Function to initialize ingredient checkboxes and load both files
+    async function initializeIngredientsAndEffects() {
+        try {
+            // Load both effects and ingredients data
+            const [effectsData, ingredientsData] = await Promise.all([
+                loadJSON(effectsURL),
+                loadJSON(ingredientsURL)
+            ]);
+
+            // Sort ingredients alphabetically by name
+            ingredientsData.sort((a, b) => a.name.localeCompare(b.name));
+
+            // Group ingredients by their starting letter
+            const groupedIngredients = ingredientsData.reduce((acc, ingredient) => {
+                const firstLetter = ingredient.name[0].toUpperCase();
+                if (!acc[firstLetter]) acc[firstLetter] = [];
+                acc[firstLetter].push(ingredient);
+                return acc;
+            }, {});
+
+            displayIngredientCheckboxes(groupedIngredients);
+        } catch (error) {
+            console.error("Error initializing ingredients and effects:", error);
+        }
+    }
+
+    // Function to display all ingredients grouped by starting letter with checkboxes
+    function displayIngredientCheckboxes(groupedIngredients) {
+        const ingredientListDiv = document.getElementById('ingredientList');
+        ingredientListDiv.innerHTML = ""; // Clear previous content
+
+        // Loop through each alphabetical group
+        Object.keys(groupedIngredients).forEach(letter => {
+            const article = document.createElement('article');
+            article.classList.add('ingredient-group');
+
+            // Letter heading
+            const letterHeading = document.createElement('h2');
+            letterHeading.textContent = letter;
+            article.appendChild(letterHeading);
+
+            // Add an <hr> under each letter heading
+            const separator = document.createElement('hr');
+            article.appendChild(separator);
+
+            // List ingredients for each letter
+            groupedIngredients[letter].forEach((ingredient, index) => {
+                const ingredientDiv = document.createElement('div');
+                ingredientDiv.classList.add('ingredient-item');
+
+                // Unique ID for each checkbox to associate with label
+                const checkboxId = `ingredient-${letter}-${index}`;
+
+                ingredientDiv.innerHTML = `
+                    <label for="${checkboxId}">
+                        <input type="checkbox" id="${checkboxId}" value="${ingredient.name}" data-effects='${JSON.stringify(ingredient.effects)}'>
+                        ${ingredient.name}
+                    </label>
+                `;
+                article.appendChild(ingredientDiv);
+            });
+
+            ingredientListDiv.appendChild(article);
+        });
+
+        // Enable the "Show Shared Effects" button if any ingredient is selected
+        ingredientListDiv.addEventListener('change', () => {
+            const checkboxes = ingredientListDiv.querySelectorAll('input[type="checkbox"]');
+            const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+            document.getElementById('showSharedEffects').disabled = !anyChecked;
+        });
+    }
+
+    // Function to show all matching effects shared by at least two selected ingredients
+    function showSharedEffects() {
+        const ingredientListDiv = document.getElementById('ingredientList');
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = ""; // Clear previous results
+
+        // Get selected ingredients and their effects
+        const selectedIngredients = Array.from(ingredientListDiv.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(checkbox => ({
+                name: checkbox.value,
+                effects: JSON.parse(checkbox.getAttribute('data-effects'))
+            }));
+
+        if (selectedIngredients.length === 0) {
+            resultsDiv.innerHTML = "<p>No ingredients selected.</p>";
+            return;
+        }
+
+        // Collect all effects from selected ingredients and map effect -> matching ingredients
+        const effectMap = {};
+        selectedIngredients.forEach(ingredient => {
+            ingredient.effects.forEach(effect => {
+                if (!effectMap[effect]) {
+                    effectMap[effect] = [];
+                }
+                effectMap[effect].push(ingredient);
+            });
+        });
+
+        // Filter effects that are shared by at least two ingredients
+        const sharedEffects = Object.keys(effectMap).filter(effect => effectMap[effect].length >= 2);
+
+        if (sharedEffects.length > 0) {
+            sharedEffects.forEach(effect => {
+                const matchingIngredients = effectMap[effect];
+
+                // Create a section for each effect and its matching ingredients
+                const effectSection = document.createElement('section');
+                effectSection.classList.add('effect-section');
+
+                const effectHeader = document.createElement('h2');
+                effectHeader.textContent = `Effect: ${effect}`;
+                effectSection.appendChild(effectHeader);
+
+                const ingredientGrid = document.createElement('div');
+                ingredientGrid.classList.add('ingredient-grid');
+
+                matchingIngredients.forEach(ingredient => {
+                    const ingredientDiv = document.createElement('div');
+                    ingredientDiv.classList.add('ingredient');
+
+                    ingredientDiv.innerHTML = `
+                        <article>
+                            <h3>${ingredient.name}</h3>
+                            <hr>
+                            <p><strong>Effects:</strong> ${ingredient.effects.join(', ')}</p>
+                            <p><strong>Value:</strong> ${ingredient.value}</p>
+                            <p><strong>Weight:</strong> ${ingredient.weight}</p>
+                            <p><strong>Plantable:</strong> ${ingredient.plantable ? 'Yes' : 'No'}</p>
+                            <p><strong>Fishable:</strong> ${ingredient.fishable ? 'Yes' : 'No'}</p>
+                        </article>
+                    `;
+                    ingredientGrid.appendChild(ingredientDiv);
+                });
+                effectSection.appendChild(ingredientGrid);
+                resultsDiv.appendChild(effectSection);
+            });
+        } else {
+            resultsDiv.innerHTML = "<p>No shared effects found among selected ingredients.</p>";
+        }
+    }
+
+    // Initialize ingredient list and set up event listener for button
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeIngredientsAndEffects();
+        document.getElementById('showSharedEffects').addEventListener('click', showSharedEffects);
+    });
+</script>
+
+<style>
+    .results, .ingredient-list {
+        margin-top: 1rem;
+    }
+
+    .button-container {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+    .results .effect-section {
+        margin-bottom: 2rem;
+    }
+
+    /* Styling for ingredient groups */
+    .ingredient-group {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+    .ingredient-group h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ingredient-item {
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .ingredient-item label {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+</style>

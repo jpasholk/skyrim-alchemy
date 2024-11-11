@@ -3,7 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../config';
-import EffectIngredientFinder from '../components/EffectIngredientFinder.astro';
+import SharefEffectFinder from '../components/SharefEffectFinder.astro';
 ---
 
 <!DOCTYPE html>
@@ -14,14 +14,10 @@ import EffectIngredientFinder from '../components/EffectIngredientFinder.astro';
 	<body>
 		<Header title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<main>
-			<p class="notice">
-				<label id="effectSelectLabel" for="effectSelect">Select an effect:</label>
-				<br>
-				<select id="effectSelect">
-					<option value="">-- Alchemy Effects --</option>
-				</select>
-			</p>
-			<EffectIngredientFinder />
+            <p class="notice">
+                Select multiple ingredients to see what you can make.    
+            </p>
+			<SharefEffectFinder />
 		</main>
 		<Footer />
 	</body>

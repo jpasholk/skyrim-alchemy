@@ -160,7 +160,10 @@
                         <article>
                             <h3>${ingredient.name}</h3>
                             <hr>
-                            <p><strong>Effects:</strong> ${ingredient.effects.join(', ')}</p>
+                            <p><strong>Effects:</strong></p>
+                            <ul>
+                                ${ingredient.effects.map(eff => `<li>${eff}</li>`).join('')}
+                            </ul>
                             <p><strong>Value:</strong> ${ingredient.value}</p>
                             <p><strong>Weight:</strong> ${ingredient.weight}</p>
                             <p><strong>Plantable:</strong> ${ingredient.plantable ? 'Yes' : 'No'}</p>

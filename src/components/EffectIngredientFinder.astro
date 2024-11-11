@@ -86,8 +86,14 @@
         resultsDiv.innerHTML = ""; // Clear previous results
 
         if (effect) {
+            // Standardize the selected effect for matching
+            const standardizedEffect = effect.toLowerCase().replace(/[^a-zA-Z0-9]/g, "");
+
+            // Filter ingredients based on a standardized effect match
             const matchingIngredients = ingredientsData.filter(ingredient =>
-                ingredient.effects.includes(effect)
+                ingredient.effects.some(eff => 
+                    eff.toLowerCase().replace(/[^a-zA-Z0-9]/g, "") === standardizedEffect
+                )
             );
 
             // Update label with the count of matching ingredients
@@ -109,7 +115,7 @@
                             <hr>
                             <p><strong>Effects:</strong></p>
                             <ul>
-                                ${ingredient.effects.map(effect => `<li>${effect}</li>`).join('')}
+                                ${ingredient.effects.map(eff => `<li>${eff}</li>`).join('')}
                             </ul>
                             <p><strong>Obtained from:</strong> ${ingredient.obtained}</p>
                             <p><strong>Value:</strong> ${ingredient.value}</p>

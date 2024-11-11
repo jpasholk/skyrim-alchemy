@@ -8,6 +8,7 @@
 <!-- Button to show shared effects with adjusted placement -->
 <div class="button-container">
     <button id="showSharedEffects" disabled>Show Shared Effects</button>
+    <p id="matchCount" class="notice" style="display: none;"></p>
 </div>
 
 <!-- Container for displaying shared effects and matching ingredients -->
@@ -21,28 +22,22 @@
 
     let ingredientsData = [];
 
-    // Function to load JSON data from a URL
     async function loadJSON(url) {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch data from ${url}`);
         return await response.json();
     }
 
-    // Function to initialize ingredient checkboxes and load both files
     async function initializeIngredientsAndEffects() {
         try {
-            // Load both effects and ingredients data
             const [effectsData, loadedIngredientsData] = await Promise.all([
                 loadJSON(effectsURL),
                 loadJSON(ingredientsURL)
             ]);
 
             ingredientsData = loadedIngredientsData;
-
-            // Sort ingredients alphabetically by name
             ingredientsData.sort((a, b) => a.name.localeCompare(b.name));
 
-            // Group ingredients by their starting letter
             const groupedIngredients = ingredientsData.reduce((acc, ingredient) => {
                 const firstLetter = ingredient.name[0].toUpperCase();
                 if (!acc[firstLetter]) acc[firstLetter] = [];
@@ -56,31 +51,25 @@
         }
     }
 
-    // Function to display all ingredients grouped by starting letter with checkboxes
     function displayIngredientCheckboxes(groupedIngredients) {
         const ingredientListDiv = document.getElementById('ingredientList');
-        ingredientListDiv.innerHTML = ""; // Clear previous content
+        ingredientListDiv.innerHTML = "";
 
-        // Loop through each alphabetical group
         Object.keys(groupedIngredients).forEach(letter => {
             const article = document.createElement('article');
             article.classList.add('ingredient-group');
 
-            // Letter heading
             const letterHeading = document.createElement('h2');
             letterHeading.textContent = letter;
             article.appendChild(letterHeading);
 
-            // Add an <hr> under each letter heading
             const separator = document.createElement('hr');
             article.appendChild(separator);
 
-            // List ingredients for each letter
             groupedIngredients[letter].forEach((ingredient, index) => {
                 const ingredientDiv = document.createElement('div');
                 ingredientDiv.classList.add('ingredient-item');
 
-                // Unique ID for each checkbox to associate with label
                 const checkboxId = `ingredient-${letter}-${index}`;
 
                 ingredientDiv.innerHTML = `
@@ -95,7 +84,6 @@
             ingredientListDiv.appendChild(article);
         });
 
-        // Enable the "Show Shared Effects" button if any ingredient is selected
         ingredientListDiv.addEventListener('change', () => {
             const checkboxes = ingredientListDiv.querySelectorAll('input[type="checkbox"]');
             const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
@@ -103,27 +91,26 @@
         });
     }
 
-    // Function to show all matching effects shared by at least two selected ingredients
     function showSharedEffects() {
         const ingredientListDiv = document.getElementById('ingredientList');
         const resultsDiv = document.getElementById('results');
+        const matchCountElement = document.getElementById('matchCount');
+        
         resultsDiv.innerHTML = ""; // Clear previous results
 
-        // Get selected ingredients and their full details from ingredientsData
         const selectedIngredients = Array.from(ingredientListDiv.querySelectorAll('input[type="checkbox"]:checked'))
             .map(checkbox => {
                 const ingredientName = checkbox.value;
-                // Find the full ingredient object in ingredientsData by name
                 return ingredientsData.find(ingredient => ingredient.name === ingredientName);
             })
-            .filter(ingredient => ingredient); // Filter out any undefined values
+            .filter(ingredient => ingredient);
 
         if (selectedIngredients.length === 0) {
             resultsDiv.innerHTML = "<p>No ingredients selected.</p>";
+            matchCountElement.style.display = "none";
             return;
         }
 
-        // Collect all effects from selected ingredients and map effect -> matching ingredients
         const effectMap = {};
         selectedIngredients.forEach(ingredient => {
             ingredient.effects.forEach(effect => {
@@ -134,14 +121,16 @@
             });
         });
 
-        // Filter effects that are shared by at least two ingredients
         const sharedEffects = Object.keys(effectMap).filter(effect => effectMap[effect].length >= 2);
 
         if (sharedEffects.length > 0) {
+            matchCountElement.textContent = `Found ${sharedEffects.length} shared ${sharedEffects.length === 1 ? 'effect' : 'effects'}`;
+            matchCountElement.style.display = "block";
+
             sharedEffects.forEach(effect => {
                 const matchingIngredients = effectMap[effect];
+                const isPositiveEffect = !isNegativeEffect(effect);
 
-                // Create a section for each effect and its matching ingredients
                 const effectSection = document.createElement('div');
                 effectSection.classList.add('effect-section');
 
@@ -156,13 +145,18 @@
                     const ingredientDiv = document.createElement('div');
                     ingredientDiv.classList.add('ingredient');
 
+                    const effectWarningHTML = isPositiveEffect
+                        ? getWarningHTML(ingredient, matchingIngredients, true)
+                        : getWarningHTML(ingredient, matchingIngredients, false);
+
                     ingredientDiv.innerHTML = `
                         <article>
                             <h3>${ingredient.name}</h3>
                             <hr>
+                            ${effectWarningHTML}
                             <p><strong>Effects:</strong></p>
                             <ul>
-                                ${ingredient.effects.map(eff => `<li>${eff}</li>`).join('')}
+                                ${ingredient.effects.map(eff => colorEffect(eff, eff === effect)).join('')}
                             </ul>
                             <p><strong>Value:</strong> ${ingredient.value}</p>
                             <p><strong>Weight:</strong> ${ingredient.weight}</p>
@@ -175,15 +169,51 @@
                 effectSection.appendChild(ingredientGrid);
                 resultsDiv.appendChild(effectSection);
             });
+
+            // Add the reset button after the results load
+            const resetButton = document.createElement('div');
+            resetButton.style.marginTop = "1rem";
+            resetButton.style.textAlign = "center";  // Center the button
+            resetButton.innerHTML = `
+                <a class="button" href="/effect-matcher" style="padding: 0.5rem 1rem;">Reset</a>
+            `;
+            resultsDiv.appendChild(resetButton);
         } else {
             resultsDiv.innerHTML = "<p>No shared effects found among selected ingredients.</p>";
+            matchCountElement.style.display = "none";
         }
     }
 
-    // Initialize ingredient list and set up event listener for button
+    function getWarningHTML(ingredient, matchingIngredients, showNegative) {
+        const effectsToShow = ingredient.effects.filter(effect => showNegative ? isNegativeEffect(effect) : !isNegativeEffect(effect));
+        const warningColor = showNegative ? "lightcoral" : "lightgreen";
+        const warningTitle = showNegative ? "Shared Negative Effects" : "Shared Positive Effects";
+
+        const effectMatches = effectsToShow.flatMap(eff =>
+            matchingIngredients
+                .filter(otherIng => otherIng !== ingredient && otherIng.effects.includes(eff))
+                .map(otherIng => `<li style="color: ${warningColor};">${eff} (also in ${otherIng.name})</li>`)
+        );
+
+        return effectMatches.length > 0
+            ? `<p style="color: ${warningColor}; font-weight: bold;">${warningTitle}:</p><ul style="color: ${warningColor};">${effectMatches.join("")}</ul>`
+            : "";
+    }
+
+    function colorEffect(effect, isSelected = false) {
+        const isNegative = isNegativeEffect(effect);
+        const color = isNegative ? "lightcoral" : "inherit";
+        const style = `color: ${color}; font-weight: ${isSelected ? 'bold' : 'normal'}; text-decoration: ${isSelected ? 'underline' : 'none'};`;
+        return `<li style="${style}">${effect}</li>`;
+    }
+
+    function isNegativeEffect(effect) {
+        const negativeKeywords = ["damage", "ravage", "paralysis", "slow", "fear", "frenzy", "weakness"];
+        return negativeKeywords.some(keyword => effect.toLowerCase().includes(keyword));
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         initializeIngredientsAndEffects();
         document.getElementById('showSharedEffects').addEventListener('click', showSharedEffects);
     });
 </script>
-

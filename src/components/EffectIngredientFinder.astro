@@ -1,7 +1,6 @@
 <div id="results" class="results"></div>
 
 <script type="module">
-    // GitHub raw URLs for JSON data
     const effectsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/effects.json';
     const ingredientsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/ingredients.json';
 
@@ -20,7 +19,6 @@
             const effectsData = await loadJSON(effectsURL);
             const ingredientsData = await loadJSON(ingredientsURL);
 
-            // Populate the dropdown with effect options
             const effectSelect = document.getElementById('effectSelect');
             effectsData.forEach(effect => {
                 const option = document.createElement('option');
@@ -29,15 +27,13 @@
                 effectSelect.appendChild(option);
             });
 
-            // Display all ingredients initially
             displayAllIngredients(ingredientsData);
 
-            // Add event listener for dropdown change
             effectSelect.addEventListener('change', function () {
                 if (this.value) {
                     displayIngredientsForEffect(this.value, ingredientsData);
                 } else {
-                    displayAllIngredients(ingredientsData); // Show all ingredients if no effect is selected
+                    displayAllIngredients(ingredientsData);
                 }
             });
         } catch (error) {
@@ -54,7 +50,7 @@
     // Function to display all ingredients
     function displayAllIngredients(ingredientsData) {
         const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = "<h2>Ingredients</h2>"; // Clear previous results
+        resultsDiv.innerHTML = "<h2>Ingredients</h2>";
         updateEffectLabelCount("", ingredientsData.length);
 
         ingredientsData.forEach(ingredient => {
@@ -67,7 +63,7 @@
                     <hr>
                     <p><strong>Effects:</strong></p>
                     <ul>
-                        ${ingredient.effects.map(effect => `<li>${effect}</li>`).join('')}
+                        ${ingredient.effects.map(effect => colorEffect(effect)).join('')}
                     </ul>
                     <p><strong>Obtained from:</strong> ${ingredient.obtained}</p>
                     <p><strong>Value:</strong> ${ingredient.value}</p>
@@ -83,39 +79,43 @@
     // Function to display ingredients with the selected effect
     function displayIngredientsForEffect(effect, ingredientsData) {
         const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = ""; // Clear previous results
+        resultsDiv.innerHTML = "";
 
         if (effect) {
-            // Standardize the selected effect for matching
             const standardizedEffect = effect.toLowerCase().replace(/[^a-zA-Z0-9]/g, "");
 
-            // Filter ingredients based on a standardized effect match
             const matchingIngredients = ingredientsData.filter(ingredient =>
                 ingredient.effects.some(eff => 
                     eff.toLowerCase().replace(/[^a-zA-Z0-9]/g, "") === standardizedEffect
                 )
             );
 
-            // Update label with the count of matching ingredients
             updateEffectLabelCount(effect, matchingIngredients.length);
 
             if (matchingIngredients.length > 0) {
                 const header = document.createElement('h2');
-                header.textContent = `"${effect}" Ingredients:`;
+                header.textContent = `${effect}`;
                 header.classList.add('effect-name');
                 resultsDiv.appendChild(header);
+
+                const isPositiveEffect = !isNegativeEffect(effect);
 
                 matchingIngredients.forEach(ingredient => {
                     const ingredientDiv = document.createElement('div');
                     ingredientDiv.classList.add('ingredient');
 
+                    const effectWarningHTML = isPositiveEffect
+                        ? getWarningHTML(ingredient, matchingIngredients, true)  // Display negative effects if positive effect selected
+                        : getWarningHTML(ingredient, matchingIngredients, false); // Display positive effects if negative effect selected
+
                     ingredientDiv.innerHTML = `
                         <article>
                             <h3>${ingredient.name}</h3>
                             <hr>
+                            ${effectWarningHTML}
                             <p><strong>Effects:</strong></p>
                             <ul>
-                                ${ingredient.effects.map(eff => `<li>${eff}</li>`).join('')}
+                                ${ingredient.effects.map(eff => colorEffect(eff, eff.toLowerCase().replace(/[^a-zA-Z0-9]/g, "") === standardizedEffect)).join('')}
                             </ul>
                             <p><strong>Obtained from:</strong> ${ingredient.obtained}</p>
                             <p><strong>Value:</strong> ${ingredient.value}</p>
@@ -132,6 +132,36 @@
         }
     }
 
-    // Initialize dropdown and display all ingredients when the page loads
+    // Helper function to determine if an effect is negative
+    function isNegativeEffect(effect) {
+        const negativeKeywords = ["damage", "ravage", "paralysis", "slow", "fear", "frenzy", "weakness"];
+        return negativeKeywords.some(keyword => effect.toLowerCase().includes(keyword));
+    }
+
+    // Helper function to color and style effects based on type and whether it matches the selected effect
+    function colorEffect(effect, isSelected = false) {
+        const isNegative = isNegativeEffect(effect);
+        const color = isNegative ? "lightcoral" : "inherit";
+        const style = `color: ${color}; font-weight: ${isSelected ? 'bold' : 'normal'}; text-decoration: ${isSelected ? 'underline' : 'none'};`;
+        return `<li style="${style}">${effect}</li>`;
+    }
+
+    // Helper function to generate warning HTML for shared effects
+    function getWarningHTML(ingredient, matchingIngredients, showNegative) {
+        const effectsToShow = ingredient.effects.filter(effect => showNegative ? isNegativeEffect(effect) : !isNegativeEffect(effect));
+        const warningColor = showNegative ? "lightcoral" : "lightgreen";
+        const warningTitle = showNegative ? "Shared Negative Effects" : "Shared Positive Effects";
+
+        const effectMatches = effectsToShow.flatMap(eff =>
+            matchingIngredients
+                .filter(otherIng => otherIng !== ingredient && otherIng.effects.includes(eff))
+                .map(otherIng => `<li style="color: ${warningColor};">${eff} (also in ${otherIng.name})</li>`)
+        );
+
+        return effectMatches.length > 0
+            ? `<p style="color: ${warningColor}; font-weight: bold;">${warningTitle}:</p><ul style="color: ${warningColor};">${effectMatches.join("")}</ul>`
+            : "";
+    }
+
     document.addEventListener('DOMContentLoaded', initializeDropdownAndDisplayAllIngredients);
 </script>

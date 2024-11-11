@@ -10,3 +10,8 @@ img {
 .effect-name {
     font-size: 2em;
 }
+
+.button-container {
+    margin-top: 2rem;
+    text-align: center;
+}

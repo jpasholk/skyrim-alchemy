@@ -142,11 +142,11 @@
                 const matchingIngredients = effectMap[effect];
 
                 // Create a section for each effect and its matching ingredients
-                const effectSection = document.createElement('section');
+                const effectSection = document.createElement('div');
                 effectSection.classList.add('effect-section');
 
                 const effectHeader = document.createElement('h2');
-                effectHeader.textContent = `Effect: ${effect}`;
+                effectHeader.textContent = `${effect}`;
                 effectSection.appendChild(effectHeader);
 
                 const ingredientGrid = document.createElement('div');
@@ -184,43 +184,3 @@
     });
 </script>
 
-<style>
-    .results, .ingredient-list {
-        margin-top: 1rem;
-    }
-
-    .button-container {
-        margin-top: 1.5rem;
-        text-align: center;
-    }
-
-    .results .effect-section {
-        margin-bottom: 2rem;
-    }
-
-    /* Styling for ingredient groups */
-    .ingredient-group {
-        margin-bottom: 2rem;
-        padding: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-    }
-
-    .ingredient-group h2 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .ingredient-item {
-        padding: 0.5rem 0;
-        display: flex;
-        align-items: center;
-    }
-
-    .ingredient-item label {
-        display: flex;
-        align-items: center;
-        width: 100%;
-    }
-</style>

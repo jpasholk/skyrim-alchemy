@@ -1,23 +1,25 @@
-    <h1>Ingredient Effect Matcher</h1>
+<h2>Ingredient Effect Matcher</h2>
 
-    <!-- Container for displaying all ingredients grouped alphabetically with checkboxes -->
-    <div id="ingredientList" class="ingredient-list">
-        <p class="notice">Select ingredients from your inventory to find shared effects.</p>
-    </div>
+<!-- Container for displaying all ingredients grouped alphabetically with checkboxes -->
+<div id="ingredientList" class="ingredient-list">
+    <p class="notice">Select ingredients from your inventory to find shared effects.</p>
+</div>
 
-    <!-- Button to show shared effects with adjusted placement -->
-    <div class="button-container">
-        <button id="showSharedEffects" disabled>Show Shared Effects</button>
-    </div>
+<!-- Button to show shared effects with adjusted placement -->
+<div class="button-container">
+    <button id="showSharedEffects" disabled>Show Shared Effects</button>
+</div>
 
-    <!-- Container for displaying shared effects and matching ingredients -->
-    <div id="results" class="results">
-        <p class="notice">Shared effects and matching ingredients will show here.</p>
-    </div>
+<!-- Container for displaying shared effects and matching ingredients -->
+<div id="results" class="results">
+    <p class="notice">Shared effects and matching ingredients will show here.</p>
+</div>
 
 <script type="module">
     const effectsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/effects.json';
     const ingredientsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/ingredients.json';
+
+    let ingredientsData = [];
 
     // Function to load JSON data from a URL
     async function loadJSON(url) {
@@ -30,10 +32,12 @@
     async function initializeIngredientsAndEffects() {
         try {
             // Load both effects and ingredients data
-            const [effectsData, ingredientsData] = await Promise.all([
+            const [effectsData, loadedIngredientsData] = await Promise.all([
                 loadJSON(effectsURL),
                 loadJSON(ingredientsURL)
             ]);
+
+            ingredientsData = loadedIngredientsData;
 
             // Sort ingredients alphabetically by name
             ingredientsData.sort((a, b) => a.name.localeCompare(b.name));
@@ -105,12 +109,14 @@
         const resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = ""; // Clear previous results
 
-        // Get selected ingredients and their effects
+        // Get selected ingredients and their full details from ingredientsData
         const selectedIngredients = Array.from(ingredientListDiv.querySelectorAll('input[type="checkbox"]:checked'))
-            .map(checkbox => ({
-                name: checkbox.value,
-                effects: JSON.parse(checkbox.getAttribute('data-effects'))
-            }));
+            .map(checkbox => {
+                const ingredientName = checkbox.value;
+                // Find the full ingredient object in ingredientsData by name
+                return ingredientsData.find(ingredient => ingredient.name === ingredientName);
+            })
+            .filter(ingredient => ingredient); // Filter out any undefined values
 
         if (selectedIngredients.length === 0) {
             resultsDiv.innerHTML = "<p>No ingredients selected.</p>";

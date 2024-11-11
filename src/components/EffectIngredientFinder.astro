@@ -1,8 +1,18 @@
+<div>
+    <label>
+        <input type="checkbox" id="sortToggle">
+        Sort Alphabetically
+    </label>
+</div>
+
 <div id="results" class="results"></div>
 
 <script type="module">
     const effectsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/effects.json';
     const ingredientsURL = 'https://raw.githubusercontent.com/jpasholk/skyrim-alchemy/master/src/data/ingredients.json';
+
+    // Variable to store the effects data
+    let effectsData = [];
 
     // Function to load JSON data from a URL
     async function loadJSON(url) {
@@ -16,15 +26,18 @@
         console.log("Initializing dropdown and displaying all ingredients");
 
         try {
-            const effectsData = await loadJSON(effectsURL);
+            effectsData = await loadJSON(effectsURL);
             const ingredientsData = await loadJSON(ingredientsURL);
 
+            const sortToggle = document.getElementById('sortToggle');
             const effectSelect = document.getElementById('effectSelect');
-            effectsData.forEach(effect => {
-                const option = document.createElement('option');
-                option.value = effect.effect;
-                option.textContent = effect.effect;
-                effectSelect.appendChild(option);
+
+            // Populate the dropdown based on sorting toggle
+            populateDropdown(effectSelect, sortToggle.checked);
+
+            // Listen for changes in the sort toggle
+            sortToggle.addEventListener('change', () => {
+                populateDropdown(effectSelect, sortToggle.checked);
             });
 
             displayAllIngredients(ingredientsData);
@@ -39,6 +52,22 @@
         } catch (error) {
             console.error("Error initializing dropdown and displaying ingredients:", error);
         }
+    }
+
+    // Populate dropdown options with sorted or original order
+    function populateDropdown(effectSelect, sortAlphabetically) {
+        effectSelect.innerHTML = ''; // Clear existing options
+
+        const sortedEffects = sortAlphabetically
+            ? [...effectsData].sort((a, b) => a.effect.localeCompare(b.effect))
+            : effectsData;
+
+        sortedEffects.forEach(effect => {
+            const option = document.createElement('option');
+            option.value = effect.effect;
+            option.textContent = effect.effect;
+            effectSelect.appendChild(option);
+        });
     }
 
     // Function to update the label with the count of ingredients matching the selected effect
